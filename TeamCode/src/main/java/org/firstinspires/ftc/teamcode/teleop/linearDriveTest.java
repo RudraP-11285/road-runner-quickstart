@@ -63,8 +63,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@TeleOp(name="Basic: Omni Linear OpMode", group="Linear OpMode")
-@Disabled
+@TeleOp(name="Linear Drive TeleOp Test", group="TeleOp")
 public class linearDriveTest extends LinearOpMode {
 
     // Declare OpMode members for each of the 4 motors.
@@ -73,7 +72,9 @@ public class linearDriveTest extends LinearOpMode {
     private DcMotor leftBackDrive = null;
     private DcMotor rightFrontDrive = null;
     private DcMotor rightBackDrive = null;
-    private DcMotor 
+    private DcMotor upDrive1 = null;
+    private DcMotor upDrive2 = null;
+    private DcMotor outDrive = null;
 
     @Override
     public void runOpMode() {
@@ -86,7 +87,7 @@ public class linearDriveTest extends LinearOpMode {
         rightBackDrive = hardwareMap.get(DcMotor.class, "rightBack");
 
         // ########################################################################################
-        // !!!            IMPORTANT Drive Information. Test your motor directions.            !!!!!
+        // !!!!            IMPORTANT Drive Information. Test your motor directions.            !!!!
         // ########################################################################################
         // Most robots need the motors on one side to be reversed to drive forward.
         // The motor reversals shown here are for a "direct drive" robot (the wheels turn the same direction as the motor shaft)
@@ -122,6 +123,8 @@ public class linearDriveTest extends LinearOpMode {
             double rightFrontPower = axial - lateral - yaw;
             double leftBackPower   = axial - lateral + yaw;
             double rightBackPower  = axial + lateral - yaw;
+            double upDrivePower    = 0;
+            double outDrivePower   = 0;
 
             // Normalize the values so no wheel power exceeds 100%
             // This ensures that the robot maintains the desired motion.
@@ -153,11 +156,30 @@ public class linearDriveTest extends LinearOpMode {
             rightBackPower  = gamepad1.b ? 1.0 : 0.0;  // B gamepad
             */
 
+            if (gamepad1.dpad_up) {
+                upDrivePower = 1;
+            } else if (gamepad1.dpad_down) {
+                upDrivePower = -1;
+            } else {
+                upDrivePower = 0;
+            }
+
+            if (gamepad1.dpad_right) {
+                outDrivePower = 1;
+            } else if (gamepad1.dpad_left) {
+                outDrivePower = -1;
+            } else {
+                outDrivePower = 0;
+            }
+
             // Send calculated power to wheels
             leftFrontDrive.setPower(leftFrontPower);
             rightFrontDrive.setPower(rightFrontPower);
             leftBackDrive.setPower(leftBackPower);
             rightBackDrive.setPower(rightBackPower);
+            upDrive1.setPower(upDrivePower);
+            upDrive2.setPower(upDrivePower);
+            outDrive.setPower(outDrivePower);
 
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
