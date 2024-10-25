@@ -33,6 +33,8 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 /*
@@ -68,13 +70,22 @@ public class linearDriveTest extends LinearOpMode {
 
     // Declare OpMode members for each of the 4 motors.
     private ElapsedTime runtime = new ElapsedTime();
-    private DcMotor leftFrontDrive = null;
-    private DcMotor leftBackDrive = null;
-    private DcMotor rightFrontDrive = null;
-    private DcMotor rightBackDrive = null;
-    private DcMotor upDrive1 = null;
-    private DcMotor upDrive2 = null;
-    private DcMotor outDrive = null;
+    private DcMotor leftFrontDrive = null; // Spongebob
+    private DcMotor leftBackDrive = null; // Clarence
+    private DcMotor rightFrontDrive = null; // Dumbledore
+    private DcMotor rightBackDrive = null; // Gandalf
+    private DcMotor upDrive1 = null; // Aristotle
+    private DcMotor upDrive2 = null; // Plato
+    private DcMotor outDrive = null; // Pythagoras
+    private CRServo intakeServo =  null; // Socrates
+    private Servo intakeRotateLeft =  null; // Edward
+    private Servo intakeRotateRight =  null; // Stuart
+    private Servo outtakeRotator =  null; // Felicia
+    private Boolean intakeRotateState = false;
+    private Boolean outtakeRotateState = false;
+    private Boolean intakeRotateDebounce = false;
+    private Boolean outtakeRotateDebounce = false;
+
 
     @Override
     public void runOpMode() {
@@ -85,6 +96,16 @@ public class linearDriveTest extends LinearOpMode {
         leftBackDrive  = hardwareMap.get(DcMotor.class, "leftBack");
         rightFrontDrive = hardwareMap.get(DcMotor.class, "rightFront");
         rightBackDrive = hardwareMap.get(DcMotor.class, "rightBack");
+
+        upDrive1 = hardwareMap.get(DcMotor.class, "upDrive1");
+        upDrive2 = hardwareMap.get(DcMotor.class, "upDrive2");
+        outDrive = hardwareMap.get(DcMotor.class, "outDrive");
+
+        //intakeServo = hardwareMap.get(CRServo.class, "intakeServo");
+        //intakeRotateLeft = hardwareMap.get(Servo.class, "intakeRotateLeft");
+        //intakeRotateRight = hardwareMap.get(Servo.class, "intakeRotateRight");
+        //outtakeRotator = hardwareMap.get(Servo.class, "outtakeRotator");
+
 
         // ########################################################################################
         // !!!!            IMPORTANT Drive Information. Test your motor directions.            !!!!
@@ -156,17 +177,32 @@ public class linearDriveTest extends LinearOpMode {
             rightBackPower  = gamepad1.b ? 1.0 : 0.0;  // B gamepad
             */
 
-            if (gamepad1.dpad_up) {
+            if (gamepad2.a && (!intakeRotateDebounce)) {
+                intakeRotateDebounce = true;
+                if (intakeRotateState) {
+                    intakeRotateState = false;
+                    // Rotate the servo
+                } else {
+                    intakeRotateState = true;
+                    // (un)Rotate the servo
+                }
+            }
+
+            if (!gamepad2.a && intakeRotateDebounce) {
+                intakeRotateDebounce = false;
+            }
+
+            if (gamepad2.dpad_up) {
                 upDrivePower = 1;
-            } else if (gamepad1.dpad_down) {
+            } else if (gamepad2.dpad_down) {
                 upDrivePower = -1;
             } else {
                 upDrivePower = 0;
             }
 
-            if (gamepad1.dpad_right) {
+            if (gamepad2.dpad_right) {
                 outDrivePower = 1;
-            } else if (gamepad1.dpad_left) {
+            } else if (gamepad2.dpad_left) {
                 outDrivePower = -1;
             } else {
                 outDrivePower = 0;
@@ -180,11 +216,13 @@ public class linearDriveTest extends LinearOpMode {
             upDrive1.setPower(upDrivePower);
             upDrive2.setPower(upDrivePower);
             outDrive.setPower(outDrivePower);
+            //intakeServo.setPower(gamepad2.right_trigger);
 
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
             telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
+            telemetry.addData("vertical lifts", "%4.2f, %4.2f", upDrive1.getCurrentPosition(), upDrive2.getCurrentPosition());
             telemetry.update();
         }
     }}
