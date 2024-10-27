@@ -218,11 +218,14 @@ public class linearDriveTest extends LinearOpMode {
             outDrive.setPower(outDrivePower);
             //intakeServo.setPower(gamepad2.right_trigger);
 
+            int upDrivePos1 = upDrive1.getCurrentPosition();
+            int upDrivePos2 = upDrive2.getCurrentPosition();
+
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
             telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
-            telemetry.addData("vertical lifts", "%4.2f, %4.2f", upDrive1.getCurrentPosition(), upDrive2.getCurrentPosition());
+            telemetry.addData("vertical lifts", "%4.2f, %4.2f", upDrivePos1, upDrivePos2);
             telemetry.update();
         }
     }}
