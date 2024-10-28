@@ -193,17 +193,17 @@ public class linearDriveTest extends LinearOpMode {
             }
 
             if (gamepad2.dpad_up) {
-                upDrivePower = 1;
+                upDrivePower = 0.1;
             } else if (gamepad2.dpad_down) {
-                upDrivePower = -1;
+                upDrivePower = -0.1;
             } else {
                 upDrivePower = 0;
             }
 
             if (gamepad2.dpad_right) {
-                outDrivePower = 1;
+                outDrivePower = 0.1;
             } else if (gamepad2.dpad_left) {
-                outDrivePower = -1;
+                outDrivePower = -0.1;
             } else {
                 outDrivePower = 0;
             }
@@ -225,7 +225,7 @@ public class linearDriveTest extends LinearOpMode {
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
             telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
-            telemetry.addData("vertical lifts", "%4.2f, %4.2f", upDrivePos1, upDrivePos2);
+            telemetry.addData("Lift Encoder Values: ", upDrivePos1 + ", " + upDrivePos2);
             telemetry.update();
         }
     }}
