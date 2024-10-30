@@ -181,10 +181,12 @@ public class linearDriveTest extends LinearOpMode {
                 intakeRotateDebounce = true;
                 if (intakeRotateState) {
                     intakeRotateState = false;
-                    // Rotate the servo
+                    //intakeRotateRight.setPosition(0);
+                    //intakeRotateLeft.setPosition(0);
+                    // Rotate the servos
                 } else {
                     intakeRotateState = true;
-                    // (un)Rotate the servo
+                    // (un)Rotate the servos
                 }
             }
 
@@ -192,18 +194,33 @@ public class linearDriveTest extends LinearOpMode {
                 intakeRotateDebounce = false;
             }
 
+            if (gamepad2.b && (!outtakeRotateDebounce)) {
+                outtakeRotateDebounce = true;
+                if (outtakeRotateState) {
+                    outtakeRotateState = false;
+                    // Rotate the servo
+                } else {
+                    outtakeRotateState = true;
+                    // (un)Rotate the servo
+                }
+            }
+
+            if (!gamepad2.b && outtakeRotateDebounce) {
+                outtakeRotateState = false;
+            }
+
             if (gamepad2.dpad_up) {
-                upDrivePower = 0.1;
+                upDrivePower = 1;
             } else if (gamepad2.dpad_down) {
-                upDrivePower = -0.1;
+                upDrivePower = -1;
             } else {
                 upDrivePower = 0;
             }
 
             if (gamepad2.dpad_right) {
-                outDrivePower = 0.1;
+                outDrivePower = 1;
             } else if (gamepad2.dpad_left) {
-                outDrivePower = -0.1;
+                outDrivePower = -1;
             } else {
                 outDrivePower = 0;
             }
@@ -214,7 +231,7 @@ public class linearDriveTest extends LinearOpMode {
             leftBackDrive.setPower(leftBackPower);
             rightBackDrive.setPower(rightBackPower);
             upDrive1.setPower(upDrivePower);
-            upDrive2.setPower(upDrivePower);
+            upDrive2.setPower(-upDrivePower);
             outDrive.setPower(outDrivePower);
             //intakeServo.setPower(gamepad2.right_trigger);
 
@@ -226,6 +243,8 @@ public class linearDriveTest extends LinearOpMode {
             telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
             telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
             telemetry.addData("Lift Encoder Values: ", upDrivePos1 + ", " + upDrivePos2);
+            telemetry.addData("intake Servo Rotation (t/f): ", intakeRotateState);
+            telemetry.addData("outtake Servo Rotation (t/f): ", outtakeRotateState);
             telemetry.update();
         }
     }}
