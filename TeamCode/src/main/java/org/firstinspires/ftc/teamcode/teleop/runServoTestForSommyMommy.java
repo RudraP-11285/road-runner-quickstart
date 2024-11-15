@@ -112,7 +112,7 @@ public class runServoTestForSommyMommy extends LinearOpMode {
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
             //testServo.setPower(0.5);
-            motor.setPower(0.1);
+            motor.setPower(-0.5);
 
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());

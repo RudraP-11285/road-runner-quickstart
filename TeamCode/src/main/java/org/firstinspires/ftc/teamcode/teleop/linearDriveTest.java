@@ -33,6 +33,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -68,7 +69,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 @TeleOp(name="Linear Drive TeleOp Test", group="TeleOp")
 public class linearDriveTest extends LinearOpMode {
 
-    // Declare OpMode members for each of the 4 motors.
+    // Declare OpMode members for each of the 4 drive motors and 3 horizontal/vertical lift motors
     private ElapsedTime runtime = new ElapsedTime();
     private DcMotor leftFrontDrive = null; // Spongebob
     private DcMotor leftBackDrive = null; // Clarence
@@ -77,14 +78,38 @@ public class linearDriveTest extends LinearOpMode {
     private DcMotor upDrive1 = null; // Aristotle
     private DcMotor upDrive2 = null; // Plato
     private DcMotor outDrive = null; // Pythagoras
-    private CRServo intakeServo =  null; // Socrates
-    private Servo intakeRotateLeft =  null; // Edward
-    private Servo intakeRotateRight =  null; // Stuart
+
+    // All 5 of the Intake Servos plugged into Expansion Hub 3
+    private CRServo leftIntakeServo =  null; // Edward
+    private CRServo rightIntakeServo =  null; // Edward
+    private Servo clawServo =  null; // Servo that opens and closes intake claw
+    private Servo clawRotateServo =  null; // Servo that rotates the claw
+    private Servo clawArmServo =  null; // Servo that rotates the entire claw arm
+
+    // All 3 of the Outtake Servos plugged into Control Hub
+    private Servo outtakeClaw =  null; // Edward
+    private Servo outtakeClawRotator =  null; // Stuart
     private Servo outtakeRotator =  null; // Felicia
+
+    // Variables to toggle each of the servos
     private Boolean intakeRotateState = false;
-    private Boolean outtakeRotateState = false;
     private Boolean intakeRotateDebounce = false;
+
+    private Boolean clawServoState = false;
+    private Boolean clawServoDebounce = false;
+
+    private Boolean clawRotateServoState = false;
+    private Boolean clawRotateServoDebounce = false;
+
+    private Boolean outtakeRotateState = false;
     private Boolean outtakeRotateDebounce = false;
+
+    private Boolean outtakeClawState = false;
+    private Boolean outtakeClawDebounce = false;
+
+    private Boolean outtakeClawRotatorState = false;
+    private Boolean outtakeClawRotatorDebounce = false;
+
 
 
     @Override
@@ -101,10 +126,17 @@ public class linearDriveTest extends LinearOpMode {
         upDrive2 = hardwareMap.get(DcMotor.class, "upDrive2");
         outDrive = hardwareMap.get(DcMotor.class, "outDrive");
 
-        //intakeServo = hardwareMap.get(CRServo.class, "intakeServo");
-        //intakeRotateLeft = hardwareMap.get(Servo.class, "intakeRotateLeft");
-        //intakeRotateRight = hardwareMap.get(Servo.class, "intakeRotateRight");
-        //outtakeRotator = hardwareMap.get(Servo.class, "outtakeRotator");
+        // All 5 input servos
+        clawServo = hardwareMap.get(Servo.class, "clawServo"); // Exp. Hub P4
+        clawArmServo = hardwareMap.get(Servo.class, "clawArmServo"); // Exp. Hub P3
+        clawRotateServo = hardwareMap.get(Servo.class, "clawRotateServo"); // Exp. Hub P2
+        rightIntakeServo = hardwareMap.get(CRServo.class, "rightIntakeServo"); // Exp. Hub P1
+        leftIntakeServo = hardwareMap.get(CRServo.class, "leftIntakeServo"); // Exp. Hub P0
+
+        // All 3 output servos
+        outtakeClaw = hardwareMap.get(Servo.class, "specimenClaw");
+        outtakeClawRotator = hardwareMap.get(Servo.class, "specimenClawRotator");
+        outtakeRotator = hardwareMap.get(Servo.class, "outtakeRotator");
 
 
         // ########################################################################################
@@ -131,6 +163,7 @@ public class linearDriveTest extends LinearOpMode {
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
+            double speedMultiplier = 1;
             double max;
 
             // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
@@ -169,7 +202,6 @@ public class linearDriveTest extends LinearOpMode {
             //   2) Then make sure they run in the correct direction by modifying the
             //      the setDirection() calls above.
             // Once the correct motors move in the correct direction re-comment this code.
-
             /*
             leftFrontPower  = gamepad1.x ? 1.0 : 0.0;  // X gamepad
             leftBackPower   = gamepad1.a ? 1.0 : 0.0;  // A gamepad
@@ -177,38 +209,113 @@ public class linearDriveTest extends LinearOpMode {
             rightBackPower  = gamepad1.b ? 1.0 : 0.0;  // B gamepad
             */
 
+
+            // Controls for Intake Arm Servo
             if (gamepad2.a && (!intakeRotateDebounce)) {
                 intakeRotateDebounce = true;
                 if (intakeRotateState) {
                     intakeRotateState = false;
-                    //intakeRotateRight.setPosition(0);
-                    //intakeRotateLeft.setPosition(0);
+                    clawArmServo.setPosition(0);
                     // Rotate the servos
                 } else {
                     intakeRotateState = true;
+                    clawArmServo.setPosition(1);
                     // (un)Rotate the servos
                 }
             }
-
             if (!gamepad2.a && intakeRotateDebounce) {
                 intakeRotateDebounce = false;
             }
 
+
+            // Controls for Claw Servo
+            if (gamepad2.right_bumper && (!clawServoDebounce)) {
+                clawServoDebounce = true;
+                if (clawServoState) {
+                    clawServoState = false;
+                    clawServo.setPosition(0);
+                    // Rotate the servos
+                } else {
+                    clawServoState = true;
+                    clawServo.setPosition(1);
+                    // (un)Rotate the servos
+                }
+            }
+            if (!gamepad2.right_bumper && clawServoDebounce) {
+                clawServoDebounce = false;
+            }
+
+
+            // Controls for Claw Rotate Servo
+            if (gamepad2.left_bumper && (!clawRotateServoDebounce)) {
+                clawRotateServoDebounce = true;
+                if (clawRotateServoState) {
+                    clawRotateServoState = false;
+                    clawRotateServo.setPosition(0);
+                    // Rotate the servos
+                } else {
+                    clawRotateServoState = true;
+                    clawRotateServo.setPosition(1);
+                    // (un)Rotate the servos
+                }
+            }
+            if (!gamepad2.left_bumper && clawRotateServoDebounce) {
+                clawRotateServoDebounce = false;
+            }
+
+
+            // Control to Rotate the Output Box itself
             if (gamepad2.b && (!outtakeRotateDebounce)) {
                 outtakeRotateDebounce = true;
                 if (outtakeRotateState) {
                     outtakeRotateState = false;
-                    // Rotate the servo
+                    outtakeRotator.setPosition(0);
                 } else {
                     outtakeRotateState = true;
+                    outtakeRotator.setPosition(1);
                     // (un)Rotate the servo
                 }
             }
-
             if (!gamepad2.b && outtakeRotateDebounce) {
-                outtakeRotateState = false;
+                outtakeRotateDebounce = false;
             }
 
+
+            // Control for the Output Claw
+            if (gamepad2.x && (!outtakeClawDebounce)) {
+                outtakeClawDebounce = true;
+                if (outtakeClawState) {
+                    outtakeClawState = false;
+                    outtakeClaw.setPosition(0);
+                } else {
+                    outtakeClawState = true;
+                    outtakeClaw.setPosition(1);
+                    // (un)Rotate the servo
+                }
+            }
+            if (!gamepad2.x && outtakeClawDebounce) {
+                outtakeClawDebounce = false;
+            }
+
+
+            // Control for the Output Claw Rotator
+            if (gamepad2.y && (!outtakeClawRotatorDebounce)) {
+                outtakeClawRotatorDebounce = true;
+                if (outtakeClawRotatorState) {
+                    outtakeClawRotatorState = false;
+                    outtakeClawRotator.setPosition(0);
+                } else {
+                    outtakeClawRotatorState = true;
+                    outtakeClawRotator.setPosition(1);
+                    // (un)Rotate the servo
+                }
+            }
+            if (!gamepad2.y && outtakeClawRotatorDebounce) {
+                outtakeClawRotatorDebounce = false;
+            }
+
+
+            // Vertical Lift Motor Controls
             if (gamepad2.dpad_up) {
                 upDrivePower = 1;
             } else if (gamepad2.dpad_down) {
@@ -217,6 +324,8 @@ public class linearDriveTest extends LinearOpMode {
                 upDrivePower = 0;
             }
 
+
+            // Horizontal "Lift" Motor Controls
             if (gamepad2.dpad_right) {
                 outDrivePower = 1;
             } else if (gamepad2.dpad_left) {
@@ -225,15 +334,23 @@ public class linearDriveTest extends LinearOpMode {
                 outDrivePower = 0;
             }
 
+            if (gamepad1.left_bumper) {
+                speedMultiplier = 0.5;
+            } else if (gamepad1.right_bumper) {
+                speedMultiplier = 2;
+            }
+
             // Send calculated power to wheels
-            leftFrontDrive.setPower(leftFrontPower);
-            rightFrontDrive.setPower(rightFrontPower);
-            leftBackDrive.setPower(leftBackPower);
-            rightBackDrive.setPower(rightBackPower);
+            leftFrontDrive.setPower(leftFrontPower * speedMultiplier);
+            rightFrontDrive.setPower(rightFrontPower * speedMultiplier);
+            leftBackDrive.setPower(leftBackPower * speedMultiplier);
+            rightBackDrive.setPower(rightBackPower * speedMultiplier);
             upDrive1.setPower(upDrivePower);
             upDrive2.setPower(-upDrivePower);
             outDrive.setPower(outDrivePower);
-            //intakeServo.setPower(gamepad2.right_trigger);
+
+            leftIntakeServo.setPower(gamepad2.right_trigger - gamepad2.left_trigger);
+            rightIntakeServo.setPower(gamepad2.left_trigger - gamepad2.right_trigger);
 
             int upDrivePos1 = upDrive1.getCurrentPosition();
             int upDrivePos2 = upDrive2.getCurrentPosition();
@@ -243,8 +360,10 @@ public class linearDriveTest extends LinearOpMode {
             telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
             telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
             telemetry.addData("Lift Encoder Values: ", upDrivePos1 + ", " + upDrivePos2);
-            telemetry.addData("intake Servo Rotation (t/f): ", intakeRotateState);
-            telemetry.addData("outtake Servo Rotation (t/f): ", outtakeRotateState);
+
+            telemetry.addData("Basket Servo Rotation (t/f): ", outtakeRotator.getPosition());
+            //telemetry.addData("intake Servo Rotation Debounce (t/f): ", intakeRotateDebounce);
+
             telemetry.update();
         }
     }}
